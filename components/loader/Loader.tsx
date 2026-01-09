@@ -1,0 +1,203 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
+import gsap from "gsap";
+import { cn } from "@/lib/utils";
+import { LogoSection } from "./logoSection";
+
+const LOADER_DURATION = 3000; // 3 seconds
+const PROGRESS_UPDATE_INTERVAL = 50; // Update every 50ms
+const LOGO_SLIDE_DISTANCE = 200; // pixels
+const LOGO_ANIMATION_DURATION = 0.8; // seconds
+const LOGO_ANIMATION_OVERLAP = 0.6; // seconds
+
+export function Loader() {
+  const [progress, setProgress] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+  const leftLogoRef = useRef<HTMLDivElement | null>(null);
+  const rightLogoRef = useRef<HTMLDivElement | null>(null);
+
+  const animateLogos = () => {
+    const timeline = gsap.timeline();
+
+    timeline
+      .fromTo(
+        leftLogoRef.current,
+        { x: -LOGO_SLIDE_DISTANCE, opacity: 0 },
+        {
+          x: 0,
+          opacity: 1,
+          duration: LOGO_ANIMATION_DURATION,
+          ease: "power3.out",
+        }
+      )
+      .fromTo(
+        rightLogoRef.current,
+        { x: LOGO_SLIDE_DISTANCE, opacity: 0 },
+        {
+          x: 0,
+          opacity: 1,
+          duration: LOGO_ANIMATION_DURATION,
+          ease: "power3.out",
+        },
+        `-=${LOGO_ANIMATION_OVERLAP}`
+      );
+  };
+
+  const animateProgressBar = (): NodeJS.Timeout => {
+    const increment = (PROGRESS_UPDATE_INTERVAL / LOADER_DURATION) * 100;
+
+    return setInterval(() => {
+      setProgress((prev) => {
+        const next = prev + increment;
+
+        if (next >= 100) {
+          setIsComplete(true);
+          return 100;
+        }
+
+        return next;
+      });
+    }, PROGRESS_UPDATE_INTERVAL);
+  };
+
+  useEffect(() => {
+    // Animate logos sliding in from opposite sides
+    animateLogos();
+
+    // Start progress bar animation
+    const timer = animateProgressBar();
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div
+      className={cn(
+        "fixed inset-0 z-9999 flex items-center justify-center bg-[#1a1a1a] transition-opacity duration-500",
+        isComplete && "opacity-0 pointer-events-none"
+      )}
+    >
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-30">
+        <Image
+          src="/loader-bg.png"
+          alt="Background pattern"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 px-4">
+        <LogoSection leftRef={leftLogoRef} rightRef={rightLogoRef} />
+
+        {/* Hall of zero limits */}
+        <div className="text-center">
+          <svg
+            className="w-44 h-16"
+            enableBackground="new 0 0 268.8 75.4"
+            viewBox="0 0 268.8 75.4"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <g>
+              <g
+                className="green-text-drop-shadow"
+                filter="url(#filter_G02BFL3GN)"
+              >
+                <g fill="#fff">
+                  <path d="m202.5 24.9h-.3l-.1.2c-1.3 2.5-2.6 4.4-4.1 5.7-1.6 1.3-3.5 2-6 2h-6.2v-23.9c0-1.5.1-2.5.5-3.3.3-.8.9-1.4 1.9-1.9l.2-.1v-.2-.1-.3h-.4-10.4-.3v.3.1.2l.2.1.1-.3-.1.3c1 .5 1.6 1.1 1.9 1.9s.5 1.9.5 3.3v19.8c0 1.5-.1 2.5-.5 3.3-.3.8-.9 1.4-1.9 1.9l.1.3-.1-.3-.2.1v.2.1.3h.3 23.4.3v-.3h-.3.3l1.5-9h-.3.3l.1-.4z"></path>
+                  <path d="m102.7 3h-.3v.3.1.2l.2.1.1-.3-.1.3c1 .5 1.6 1.1 1.9 1.9s.5 1.9.5 3.3v8.6h-15.9v-8.6c0-1.5.1-2.5.5-3.3.3-.8.9-1.4 1.9-1.9l.2-.1v-.2-.1-.3h-.3-10.4-.3v.3.1.2l.2.1c1 .5 1.6 1.1 1.9 1.9s.5 1.9.5 3.3v19.8c0 1.5-.1 2.5-.5 3.3-.3.8-.9 1.4-1.9 1.9l.1.3-.1-.3-.2.1v.2.1.3h.3 10.4.3v-.3-.1-.2l-.2-.1c-1-.5-1.6-1.1-1.9-1.9s-.5-1.9-.5-3.3v-9.3h15.8v9.3c0 1.5-.1 2.5-.5 3.3-.3.8-.9 1.4-1.9 1.9l.1.3-.1-.3-.2.1v.2.1.3h.3 10.4.3v-.3-.1-.2l-.2-.1-.1.3.1-.3c-1-.5-1.6-1.1-1.9-1.9s-.5-1.9-.5-3.3v-19.8c0-1.5.1-2.5.5-3.3.3-.8.9-1.4 1.9-1.9l.2-.1v-.2-.1-.3h-.3z"></path>
+                  <path d="m147.7 34.2.1-.3c-1.6-.9-2.1-1.9-3.5-4.7l-12.2-26.5-.1-.1h-.2-.2-.2l-.1.2.3.1-.3-.1-11.3 25.6c-1.3 2.9-2.4 4.7-4 5.6l.1.3-.1-.3-.2.1v.2.1.3h.3 7.2.3v-.3-.1-.3l-.2-.1c-1.2-.5-2-1.6-2-2.8 0-1 .3-1.9.7-2.8l-.3-.1.3.1 1.6-3.8h12.2l2.1 4.7c.4 1 .7 1.8.7 2.5 0 .9-.6 1.6-1.8 2.1l.1.3-.1-.3-.2.1v.2.1.3h.3 10.7.3v-.3-.1-.1l-.2-.1zm-12.6-11.4h-10.6l5.2-12z"></path>
+                  <path d="m175.5 24.9h-.2l-.1.2c-1.3 2.5-2.6 4.4-4.1 5.7-1.6 1.3-3.5 2-6 2h-6.2v-23.9c0-1.5.1-2.5.5-3.3.3-.8.9-1.4 1.9-1.9l.2-.1v-.2-.1-.3h-.3-10.4-.3v.3.1.2l.2.1c1 .5 1.6 1.1 1.9 1.9s.5 1.9.5 3.3v19.8c0 1.5-.1 2.5-.5 3.3-.3.8-.9 1.4-1.9 1.9l-.2.1v.2.1.3h.3 23.4.3v-.3h-.3.3l1.5-9 .1-.4z"></path>
+                  <path d="m23.5 1.8h-.3v.3 1.9.3h.3 4.1v10.3.3h.3 2.4.3v-.3-10.3h4.2.3v-.3-1.9-.3h-.3z"></path>
+                  <path d="m69.9 12.4h-5.5v-2.9h5.1.3v-.3-1.9-.3h-.3-5.1v-2.7h5.3.3v-.3-1.9-.3h-.3-8-.3v.3 12.5.3h.3 8.2.3v-.3-1.9-.3z"></path>
+                  <path d="m51 1.8h-.3v.3 5h-5.9v-5-.3h-.3-2.4-.3v.3 12.5.3h.3 2.4.3v-.3-5h5.9v5 .3h.3 2.4.3v-.3-12.5-.3h-.3z"></path>
+                  <path d="m224.8 24.5c-.6-1.1-1.5-1.9-2.6-2.4-1.1-.6-2.3-.8-3.6-.8-1.4 0-2.6.3-3.7.9s-1.9 1.4-2.6 2.5c-.6 1.1-.9 2.2-.9 3.4s.3 2.4.9 3.4l.3-.2-.3.2c.6 1 1.5 1.8 2.6 2.4l.1-.2v-.1l-.1.3c1.1.6 2.3.9 3.7.9s2.6-.3 3.7-.9v-.1.1c1.1-.6 2-1.4 2.6-2.4s.9-2.2.9-3.4c0-1.4-.4-2.5-1-3.6zm-3.1 6.6-.2-.2c-.8.7-1.7 1.1-2.9 1.1-.8 0-1.5-.2-2.1-.5s-1.1-.8-1.4-1.4-.5-1.3-.5-2.1.2-1.5.5-2.1l-.3-.1.2.1c.3-.6.8-1.1 1.4-1.4l-.1-.3.1.3c.6-.3 1.3-.5 2.1-.5s1.5.2 2.1.5l.1-.3-.1.3c.6.3 1.1.8 1.5 1.4l.2-.1-.2.1c.3.6.5 1.3.5 2.1 0 1.2-.4 2.2-1.1 2.9zm2.9.1.1.1z"></path>
+                  <path d="m240.8 21.4h-7.6-.3v.3 12.5.3h.3 2.4.3v-.3-5.1h4.9.3v-.3-1.9-.3h-.3-4.9v-2.7h4.9.3v-.3-1.9-.3z"></path>
+                  <path d="m30.9 41.7-18.2 26.5h18.3v4.8h-28.7l18.2-26.5h-17.1v-4.7zm24.8 0v4.7h-14.1v8.2h13.5v4.7h-13.5v8.9h14.5v4.8h-20.5v-31.3zm15.9 0c2.9 0 5.3.8 7.2 2.4 1.8 1.6 2.8 3.7 2.8 6.3 0 1.8-.5 3.3-1.4 4.6s-2.3 2.3-4.1 3.1c1 .5 1.9 1.3 2.7 2.2s1.7 2.5 2.9 4.7c1.9 3.8 3.3 6.4 4.2 7.8h-6.7c-.5-.7-1.1-1.8-1.9-3.3-1.7-3.3-3-5.6-3.8-6.7-.8-1.2-1.6-2-2.3-2.5s-1.6-.7-2.6-.7h-2.2v13.4h-6v-31.3zm-1.4 13.4c1.6 0 2.8-.4 3.7-1.2s1.4-1.9 1.4-3.2c0-1.4-.4-2.5-1.3-3.2s-2.2-1.1-3.8-1.1h-3.8v8.7zm32.4-13.8c3.2 0 6.1.7 8.7 2s4.7 3.2 6.2 5.8c1.5 2.5 2.3 5.3 2.3 8.2s-.8 5.6-2.3 8.1-3.5 4.4-6.2 5.8c-2.6 1.4-5.6 2.1-8.8 2.1s-6.2-.7-8.8-2.1-4.7-3.3-6.2-5.8-2.2-5.2-2.2-8.1.7-5.6 2.2-8.1 3.5-4.5 6.1-5.9c2.7-1.3 5.7-2 9-2zm-11 16.1c0 2.1.5 3.9 1.4 5.6s2.2 2.9 3.9 3.8 3.6 1.4 5.7 1.4c3.2 0 5.8-1 7.9-3s3.1-4.6 3.1-7.8c0-2.1-.5-3.9-1.4-5.6s-2.2-3-3.9-3.9-3.6-1.4-5.7-1.4-4 .5-5.7 1.4-3 2.2-3.9 3.8c-.9 1.7-1.4 3.6-1.4 5.7zm46.7-15.7v26.5h15.2v4.8h-21.2v-31.3zm25.5 0v31.3h-6v-31.3zm10.2 0 10.3 12.3 10.3-12.3h5.4v31.3h-6v-22h-.2l-9 11h-.9l-9-11h-.2v22h-6v-31.3zm37.1 0v31.3h-6v-31.3zm32 0v4.7h-11.1v26.6h-6v-26.5h-11.1v-4.7zm13.2-.4c3 0 6 .8 8.8 2.3v5.4c-3.2-2-6.1-2.9-8.6-2.9-1.5 0-2.7.3-3.6.9-.8.6-1.3 1.4-1.3 2.3 0 1.2.8 2.3 2.4 3.3.4.3 2.2 1.1 5.2 2.5 2.6 1.2 4.4 2.5 5.5 4s1.7 3.2 1.7 5.3c0 2.7-1 4.8-2.9 6.5-1.9 1.6-4.4 2.5-7.5 2.5-2 0-3.7-.2-5.2-.6-1.4-.4-3-1.2-4.8-2.3v-5.9c3.3 2.8 6.5 4.2 9.4 4.2 1.5 0 2.7-.3 3.6-1 .9-.6 1.4-1.5 1.4-2.5 0-1.4-.8-2.6-2.4-3.5-1.3-.7-3-1.6-5.1-2.6-2.5-1.1-4.3-2.4-5.5-3.9s-1.8-3.2-1.8-5.2c0-2.6 1-4.7 2.9-6.3 2-1.7 4.6-2.5 7.8-2.5z"></path>
+                  <path d="m102.5 53.3 4.6 4.6-4.6 4.6-4.6-4.6z"></path>
+                </g>
+              </g>
+              <defs>
+                <filter
+                  id="filter_G02BFL3GN"
+                  x="-20"
+                  y="-20"
+                  width="308.8"
+                  height="125.4"
+                  filterUnits="userSpaceOnUse"
+                  colorInterpolationFilters="sRGB"
+                >
+                  <feFlood
+                    floodOpacity="0"
+                    result="BackgroundImageFix"
+                  ></feFlood>
+                  <feColorMatrix
+                    in="SourceAlpha"
+                    type="matrix"
+                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                    result="hardAlpha"
+                  ></feColorMatrix>
+                  <feOffset></feOffset>
+                  <feGaussianBlur stdDeviation="13.3759"></feGaussianBlur>
+                  <feColorMatrix
+                    type="matrix"
+                    values="0 0 0 0 0.0619048 0 0 0 0 0.433333 0 0 0 0 0 0 0 0 .7 0"
+                  ></feColorMatrix>
+                  <feBlend
+                    mode="normal"
+                    in2="BackgroundImageFix"
+                    result="fx1"
+                  ></feBlend>
+                  <feColorMatrix
+                    in="SourceAlpha"
+                    type="matrix"
+                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                    result="hardAlpha"
+                  ></feColorMatrix>
+                  <feOffset></feOffset>
+                  <feGaussianBlur stdDeviation="2.30619"></feGaussianBlur>
+                  <feColorMatrix
+                    type="matrix"
+                    values="0 0 0 0 0.6 0 0 0 0 1 0 0 0 0 0.533333 0 0 0 0.5 0"
+                  ></feColorMatrix>
+                  <feBlend mode="normal" in2="fx1" result="fx2"></feBlend>
+                  <feBlend
+                    mode="normal"
+                    in="SourceGraphic"
+                    in2="fx2"
+                    result="shape"
+                  ></feBlend>
+                </filter>
+              </defs>
+            </g>
+          </svg>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-64 md:w-96 mt-8">
+          <div className="h-[2px] bg-white/20 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-linear-to-r from-emerald-400 to-emerald-500 transition-all duration-100 ease-linear"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="text-center mt-3 text-sm text-white/60 font-mono">
+            {Math.round(progress)}%
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Background pattern overlay component
+ */
+
+/**
+ * Logo section with Sprite and Marvel branding
+ */
