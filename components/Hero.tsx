@@ -85,7 +85,6 @@ export function Hero({ onEnter, startAnimations = true }: Readonly<HeroProps>) {
 
   // Exit Animation
   const handleEnterClick = () => {
-    // 1. Fade out UI elements
     gsap.to(
       [
         titleRef.current,
@@ -153,7 +152,7 @@ export function Hero({ onEnter, startAnimations = true }: Readonly<HeroProps>) {
 
         <div ref={titleRef} className="mb-8" style={{ opacity: 0 }}>
           <svg
-            className="w-175 h-auto"
+            className="w-85 sm:w-175 h-auto"
             enableBackground="new 0 0 268.8 75.4"
             viewBox="0 0 268.8 75.4"
             xmlns="http://www.w3.org/2000/svg"

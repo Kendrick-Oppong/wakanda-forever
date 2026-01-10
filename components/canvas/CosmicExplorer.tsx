@@ -26,37 +26,34 @@ const CREW = COSMIC_CREW;
 export function CosmicExplorer() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // State for HTML Overlay (when docked)
   const [activePlanet, setActivePlanet] = useState<(typeof CREW)[0] | null>(
     null
   );
 
-  // Game state for HUD
+  // Game state 
   const [visitedPlanets, setVisitedPlanets] = useState<Set<string>>(new Set());
   const [currentSpeed, setCurrentSpeed] = useState(0);
   const [distanceTraveled, setDistanceTraveled] = useState(0);
   const [missionCompleteDismissed, setMissionCompleteDismissed] =
     useState(false);
-  const [cameraZ, setCameraZ] = useState(0); // For mini-map
-  const [isMuted, setIsMuted] = useState(false); // Sound toggle
-  const [secretUnlocked, setSecretUnlocked] = useState(false); // Easter egg
+  const [cameraZ, setCameraZ] = useState(0); 
+  const [isMuted, setIsMuted] = useState(false);
+  const [secretUnlocked, setSecretUnlocked] = useState(false); 
 
   const isMutedRef = useRef(isMuted);
   const audioContextRef = useRef<AudioContext | null>(null);
   const ambientOscillatorsRef = useRef<OscillatorNode[]>([]);
   const ambientStartedRef = useRef(false);
 
-  // Sync ref with state
   useEffect(() => {
     isMutedRef.current = isMuted;
 
-    // Handle ambient sound toggle immediately
+    //ambient sound toggle 
     if (audioContextRef.current && ambientStartedRef.current) {
       if (isMuted) {
         stopAmbientSound(ambientOscillatorsRef.current);
         ambientOscillatorsRef.current = [];
       } else {
-        // Restart only if we previously started
         const result = startAmbientSoundUtil(audioContextRef.current, false);
         ambientOscillatorsRef.current = result.oscillators;
       }
@@ -83,7 +80,6 @@ export function CosmicExplorer() {
     let height = window.innerHeight;
     let frameId: number;
 
-    // Sound Effects (Web Audio API)
     if (!audioContextRef.current && typeof window !== "undefined") {
       audioContextRef.current = new (window.AudioContext ||
         (window as any).webkitAudioContext)();
@@ -116,20 +112,17 @@ export function CosmicExplorer() {
           ambientStartedRef.current = true;
         });
       } else if (!ambientStartedRef.current && audioContextRef.current) {
-        // Mark as started even if muted, so unmute works later
         ambientStartedRef.current = true;
       }
     };
 
-    // --- ENGINE STATE ---
-    let camera = { x: 0, y: 0, z: 0 };
-    let targetZ = 0; // For smooth scrolling
-    let isDocked = false; // If true, disable scroll, locked to planet
+    const camera = { x: 0, y: 0, z: 0 };
+    let targetZ = 0; // smooth scrolling
+    let isDocked = false; 
     let hoverId: string | null = null;
-    let warpSpeed = 0; // For visual streak effect
-    let lastZ = 0; // For tracking speed
+    let warpSpeed = 0; 
+    let lastZ = 0; // tracking speed
 
-    // Drag/Pan state
     let isDragging = false;
     let dragStartX = 0;
     let dragStartY = 0;
@@ -138,18 +131,16 @@ export function CosmicExplorer() {
     let targetOffsetX = 0;
     let targetOffsetY = 0;
 
-    // --- INPUT HANDLING ---
     const handleWheel = (e: WheelEvent) => {
-      ensureAmbient(); // Start ambient on first scroll
-      if (isDocked) return; // Locked when viewing info
-      targetZ += e.deltaY * 2; // Speed multiplier
-      // Clamp
+      ensureAmbient(); 
+      if (isDocked) return; 
+      targetZ += e.deltaY * 2; 
+     
       targetZ = Math.max(0, Math.min(targetZ, 8000));
 
-      // Warp whoosh sound based on scroll speed
       const scrollSpeed = Math.abs(e.deltaY);
       if (scrollSpeed > 50) {
-        playSound(200 + scrollSpeed, 100, 0.05); // Higher pitch for faster scrolling
+        playSound(200 + scrollSpeed, 100, 0.05)
       }
     };
 
@@ -158,12 +149,11 @@ export function CosmicExplorer() {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
 
-      // Handle dragging
+      // dragging
       if (isDragging && !isDocked) {
         const deltaX = e.clientX - dragStartX;
         const deltaY = e.clientY - dragStartY;
 
-        // Invert delta so dragging right moves view right (camera moves left in world space)
         targetOffsetX = cameraOffsetX - deltaX;
         targetOffsetY = cameraOffsetY - deltaY;
       }
@@ -183,7 +173,6 @@ export function CosmicExplorer() {
       document.body.style.cursor = "default";
     };
 
-    // Touch Support for Mobile
     let touchStartY = 0;
     let touchStartTime = 0;
 
@@ -191,7 +180,6 @@ export function CosmicExplorer() {
       ensureAmbient();
       touchStartY = e.touches[0].clientY;
       touchStartTime = Date.now();
-      // Update mouse position for hover detection
       mouse.x = e.touches[0].clientX;
       mouse.y = e.touches[0].clientY;
     };
@@ -202,56 +190,47 @@ export function CosmicExplorer() {
       const touch = e.touches[0];
       const deltaY = touchStartY - touch.clientY;
 
-      // Swipe to scroll
-      targetZ += deltaY * 3; // Faster scroll for touch
+      targetZ += deltaY * 3;
       targetZ = Math.max(0, Math.min(targetZ, 8000));
 
       touchStartY = touch.clientY;
 
-      // Update mouse position for hover detection
       mouse.x = touch.clientX;
       mouse.y = touch.clientY;
 
-      // Prevent page scroll
       e.preventDefault();
     };
 
-    const handleTouchEnd = (e: TouchEvent) => {
+    const handleTouchEnd = () => {
       const touchDuration = Date.now() - touchStartTime;
 
-      // Quick tap = click
       if (touchDuration < 200) {
         handleClick();
       }
     };
 
-    // Click to Dock / Undock
     const handleClick = () => {
-      ensureAmbient(); // Start ambient on first click
+      ensureAmbient(); 
       if (isDocked) {
-        // Undock
         isDocked = false;
         setActivePlanet(null);
         warpSpeed = 0;
-        playSound(150, 200, 0.08); // Undock sound
+        playSound(150, 200, 0.08); 
       } else if (hoverId) {
-        // Dock to planet
         const planet = CREW.find((p) => p.id === hoverId);
         if (planet) {
           isDocked = true;
           setActivePlanet(planet);
 
-          // Track visited planet
           setVisitedPlanets((prev) => new Set(prev).add(planet.id));
 
-          // Docking sound
           playSound(400, 300, 0.1);
           setTimeout(() => playSound(300, 200, 0.08), 150);
 
-          // WARP EFFECT: Accelerate visual cues
+          // WARP EFFECT: 
           warpSpeed = 50;
           gsap.to(camera, {
-            z: planet.z - 350, // Stop a bit closer
+            z: planet.z - 350, 
             duration: 2.0,
             ease: "power2.inOut",
             onUpdate: () => {
@@ -261,7 +240,7 @@ export function CosmicExplorer() {
               warpSpeed = 0;
             },
           });
-          targetZ = planet.z - 350; // Sync target
+          targetZ = planet.z - 350; 
         }
       }
     };
@@ -302,23 +281,22 @@ export function CosmicExplorer() {
 
       // Physics
       if (!isDocked) {
-        camera.z += (targetZ - camera.z) * 0.05; // Smooth scroll
+        camera.z += (targetZ - camera.z) * 0.05; 
       }
 
       // Smooth camera pan
       camera.x += (targetOffsetX - camera.x) * 0.1;
       camera.y += (targetOffsetY - camera.y) * 0.1;
 
-      // Game Metrics (use local variable to avoid excessive re-renders)
+      // Game Metrics
       const speed = Math.abs(camera.z - lastZ);
 
-      // Update state occasionally (every ~10 frames to reduce re-renders)
       if (Math.floor(time * 100) % 10 === 0) {
         setCurrentSpeed(speed);
         setDistanceTraveled((prev) => prev + speed);
-        setCameraZ(camera.z); // Update for mini-map
+        setCameraZ(camera.z); 
       }
-      lastZ = camera.z; // Update lastZ for the next frame
+      lastZ = camera.z; 
 
       ctx.clearRect(0, 0, width, height);
 
@@ -347,7 +325,6 @@ export function CosmicExplorer() {
 
       drawPlanets(ctx, CREW, camera.z, activePlanet?.id || null, time, project);
 
-      // Set cursor based on state
       if (!hoverId && !isDocked && !isDragging) {
         document.body.style.cursor = "grab";
       } else if (!hoverId && !isDragging) {
@@ -401,15 +378,15 @@ export function CosmicExplorer() {
             <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,127,0.05)_1px,transparent_1px)] bg-[size:100%_4px] opacity-50 pointer-events-none rounded-2xl" />
 
             {/* Corner Accents */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#00ff7f]" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#00ff7f]" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[#00ff7f]" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#00ff7f]" />
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cosmic-green" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cosmic-green" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cosmic-green" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cosmic-green" />
 
             {/* Header */}
             <div className="flex items-center gap-4 mb-4 opacity-80">
-              <div className="w-2 h-2 bg-[#00ff7f] rounded-full animate-ping" />
-              <span className="text-[#00ff7f] text-xs tracking-[0.3em] font-mono">
+              <div className="w-2 h-2 bg-cosmic-green rounded-full animate-ping" />
+              <span className="text-cosmic-green text-xs tracking-[0.3em] font-mono">
                 SECURE CONNECTION ESTABLISHED
               </span>
             </div>
@@ -418,9 +395,9 @@ export function CosmicExplorer() {
               {activePlanet.name}
             </h2>
 
-            <div className="h-px w-full bg-gradient-to-r from-[#00ff7f] to-transparent mb-6 opacity-50" />
+            <div className="h-px w-full bg-gradient-to-r from-cosmic-green to-transparent mb-6 opacity-50" />
 
-            <p className="text-[#00ff7f] tracking-[0.2em] text-lg font-semibold mb-8">
+            <p className="text-cosmic-green tracking-[0.2em] text-lg font-semibold mb-8">
               {activePlanet.role}
             </p>
 
@@ -439,7 +416,7 @@ export function CosmicExplorer() {
             </div>
 
             <div className="mt-8 flex justify-end">
-              <button className="px-6 py-2 border border-[#00ff7f] text-[#00ff7f] hover:bg-[#00ff7f] hover:text-black transition-colors uppercase tracking-widest text-xs font-bold">
+              <button className="px-6 py-2 border border-cosmic-green text-cosmic-green hover:bg-cosmic-green hover:text-black transition-colors uppercase tracking-widest text-xs font-bold">
                 close
               </button>
             </div>
@@ -452,9 +429,9 @@ export function CosmicExplorer() {
         <>
           {/* Top Left - Mission Info */}
           <div className="absolute top-3 left-3 md:top-6 md:left-6 pointer-events-none">
-            <div className="bg-black/60 backdrop-blur-sm border border-[#00ff7f]/30 p-2 md:p-4 rounded-lg font-mono text-[10px] md:text-xs">
-              <div className="text-[#00ff7f] tracking-wider mb-2 flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#00ff7f] rounded-full animate-pulse" />
+            <div className="bg-black/60 backdrop-blur-sm border border-cosmic-green/30 p-2 md:p-4 rounded-lg font-mono text-[10px] md:text-xs">
+              <div className="text-cosmic-green tracking-wider mb-2 flex items-center gap-2">
+                <div className="w-2 h-2 bg-cosmic-green rounded-full animate-pulse" />
                 <span>MISSION: CREW ARCHIVE</span>
               </div>
               <div className="text-white/70 space-y-1">
@@ -467,7 +444,7 @@ export function CosmicExplorer() {
                       key={c.id}
                       className={`w-6 h-1 rounded ${
                         visitedPlanets.has(c.id)
-                          ? "bg-[#00ff7f]"
+                          ? "bg-cosmic-green"
                           : "bg-white/20"
                       }`}
                     />
@@ -479,10 +456,10 @@ export function CosmicExplorer() {
 
           {/* Top Right - Stats */}
           <div className="absolute top-3 right-3 md:top-6 md:right-6 pointer-events-none">
-            <div className="bg-black/60 backdrop-blur-sm border border-[#00ff7f]/30 p-2 md:p-4 rounded-lg font-mono text-[10px] md:text-xs space-y-2 md:space-y-3">
+            <div className="bg-black/60 backdrop-blur-sm border border-cosmic-green/30 p-2 md:p-4 rounded-lg font-mono text-[10px] md:text-xs space-y-2 md:space-y-3">
               {/* Speed Meter */}
               <div>
-                <div className="text-[#00ff7f]/70 text-[10px] tracking-widest mb-1">
+                <div className="text-cosmic-green/70 text-[10px] tracking-widest mb-1">
                   VELOCITY
                 </div>
                 <div className="flex items-end gap-1 md:gap-2">
@@ -494,7 +471,7 @@ export function CosmicExplorer() {
                 {/* Speed bar */}
                 <div className="w-20 md:w-32 h-1 bg-white/10 rounded overflow-hidden mt-1">
                   <div
-                    className="h-full bg-gradient-to-r from-[#00ff7f] to-cyan-400 transition-all duration-100"
+                    className="h-full bg-gradient-to-r from-cosmic-green to-cyan-400 transition-all duration-100"
                     style={{
                       width: `${Math.min(100, (currentSpeed / 50) * 100)}%`,
                     }}
@@ -504,7 +481,7 @@ export function CosmicExplorer() {
 
               {/* Distance */}
               <div>
-                <div className="text-[#00ff7f]/70 text-[10px] tracking-widest mb-1">
+                <div className="text-cosmic-green/70 text-[10px] tracking-widest mb-1">
                   DISTANCE
                 </div>
                 <div className="text-white tabular-nums">
@@ -517,9 +494,9 @@ export function CosmicExplorer() {
           {/* Bottom Center - Controls Hint */}
           <div className="absolute bottom-6 md:bottom-12 w-full flex justify-center pointer-events-none">
             <div className="flex flex-col items-center gap-2 opacity-60">
-              <div className="w-px h-8 bg-gradient-to-b from-transparent via-[#00ff7f] to-transparent animate-pulse" />
-              <div className="bg-black/40 backdrop-blur-sm border border-[#00ff7f]/20 px-3 md:px-4 py-1.5 md:py-2 rounded-full">
-                <span className="text-[#00ff7f] text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase">
+              <div className="w-px h-8 bg-gradient-to-b from-transparent via-cosmic-green to-transparent animate-pulse" />
+              <div className="bg-black/40 backdrop-blur-sm border border-cosmic-green/20 px-3 md:px-4 py-1.5 md:py-2 rounded-full">
+                <span className="hidden sm:block text-cosmic-green text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase">
                   Scroll • Explore • Click to Dock
                 </span>
               </div>
@@ -533,7 +510,7 @@ export function CosmicExplorer() {
                 className="
                   relative 
                   bg-[rgba(10,20,15,0.85)] backdrop-blur-md 
-                  border-2 border-[#00ff7f] 
+                  border-2 border-cosmic-green 
                   p-12 rounded-2xl max-w-xl w-full
                   pointer-events-auto 
                   animate-in fade-in zoom-in duration-700
@@ -549,17 +526,17 @@ export function CosmicExplorer() {
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,127,0.05)_1px,transparent_1px)] bg-[size:100%_4px] opacity-50 pointer-events-none rounded-2xl" />
 
                 {/* Corner Accents */}
-                <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[#00ff7f]" />
-                <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-[#00ff7f]" />
-                <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-[#00ff7f]" />
-                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[#00ff7f]" />
+                <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-cosmic-green" />
+                <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-cosmic-green" />
+                <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-cosmic-green" />
+                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-cosmic-green" />
 
                 {/* Close Button */}
                 <button
                   onClick={() => setMissionCompleteDismissed(true)}
-                  className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center border border-[#00ff7f] rounded-full hover:bg-[#00ff7f] hover:text-black transition-colors group"
+                  className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center border border-cosmic-green rounded-full hover:bg-cosmic-green hover:text-black transition-colors group"
                 >
-                  <span className="text-[#00ff7f] group-hover:text-black text-lg">
+                  <span className="text-cosmic-green group-hover:text-black text-lg">
                     ×
                   </span>
                 </button>
@@ -568,22 +545,22 @@ export function CosmicExplorer() {
                 <div className="text-center space-y-6">
                   {/* Status Indicator */}
                   <div className="flex items-center justify-center gap-2 mb-4">
-                    <div className="w-3 h-3 bg-[#00ff7f] rounded-full animate-ping" />
-                    <span className="text-[#00ff7f] text-xs tracking-[0.3em] font-mono">
+                    <div className="w-3 h-3 bg-cosmic-green rounded-full animate-ping" />
+                    <span className="text-cosmic-green text-xs tracking-[0.3em] font-mono">
                       TRANSMISSION COMPLETE
                     </span>
                   </div>
 
                   {/* Main Message */}
-                  <div className="text-[#00ff7f] text-5xl font-bold animate-pulse drop-shadow-[0_0_20px_rgba(0,255,127,0.5)]">
+                  <div className="text-cosmic-green text-5xl font-bold animate-pulse drop-shadow-[0_0_20px_rgba(0,255,127,0.5)]">
                     MISSION COMPLETE
                   </div>
 
-                  <div className="h-px w-full bg-gradient-to-r from-transparent via-[#00ff7f] to-transparent opacity-50" />
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-cosmic-green to-transparent opacity-50" />
 
                   <div className="text-white/80 text-sm tracking-wider font-mono space-y-2">
                     <p>ALL CREW DATA COLLECTED</p>
-                    <p className="text-[#00ff7f]/70 text-xs">
+                    <p className="text-cosmic-green/70 text-xs">
                       {CREW.length}/{CREW.length} ARCHIVES ACCESSED
                     </p>
                     {secretUnlocked && (
@@ -594,9 +571,9 @@ export function CosmicExplorer() {
                   </div>
 
                   {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#00ff7f]/20">
+                  <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-cosmic-green/20">
                     <div>
-                      <div className="text-[#00ff7f]/70 text-[10px] tracking-widest mb-1">
+                      <div className="text-cosmic-green/70 text-[10px] tracking-widest mb-1">
                         DISTANCE
                       </div>
                       <div className="text-white font-mono">
@@ -604,10 +581,10 @@ export function CosmicExplorer() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-[#00ff7f]/70 text-[10px] tracking-widest mb-1">
+                      <div className="text-cosmic-green/70 text-[10px] tracking-widest mb-1">
                         STATUS
                       </div>
-                      <div className="text-[#00ff7f] font-mono">SUCCESS</div>
+                      <div className="text-cosmic-green font-mono">SUCCESS</div>
                     </div>
                   </div>
                 </div>
@@ -617,15 +594,15 @@ export function CosmicExplorer() {
 
           {/* MINI-MAP / RADAR (Bottom Left) */}
           <div className="absolute bottom-6 left-6 pointer-events-none">
-            <div className="bg-black/70 backdrop-blur-sm border border-[#00ff7f]/30 p-3 rounded-lg">
-              <div className="text-[#00ff7f]/70 text-[9px] tracking-widest mb-2 text-center">
+            <div className="bg-black/70 backdrop-blur-sm border border-cosmic-green/30 p-3 rounded-lg">
+              <div className="text-cosmic-green/70 text-[9px] tracking-widest mb-2 text-center">
                 RADAR
               </div>
-              <div className="relative w-32 h-32 border border-[#00ff7f]/20 rounded-full">
+              <div className="relative w-32 h-32 border border-cosmic-green/20 rounded-full">
                 {/* Radar sweep effect */}
                 <div className="absolute inset-0 rounded-full overflow-hidden">
                   <div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00ff7f]/10 to-transparent"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-cosmic-green/10 to-transparent"
                     style={{
                       transform: `rotate(${(cameraZ / 100) % 360}deg)`,
                       transformOrigin: "center",
@@ -663,7 +640,7 @@ export function CosmicExplorer() {
                         <div
                           className={`w-1.5 h-1.5 rounded-full ${
                             visitedPlanets.has(planet.id)
-                              ? "bg-[#00ff7f]"
+                              ? "bg-cosmic-green"
                               : "bg-white/40"
                           }`}
                           style={{
@@ -684,9 +661,9 @@ export function CosmicExplorer() {
           <div className="absolute bottom-6 left-48 pointer-events-auto">
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className="bg-black/70 backdrop-blur-sm border border-[#00ff7f]/30 p-2 rounded-lg hover:bg-[#00ff7f]/10 transition-colors"
+              className="bg-black/70 backdrop-blur-sm border border-cosmic-green/30 p-2 rounded-lg hover:bg-cosmic-green/10 transition-colors"
             >
-              <span className="text-[#00ff7f] text-xs">
+              <span className="text-cosmic-green text-xs">
                 {isMuted ? "🔇" : "🔊"}
               </span>
             </button>

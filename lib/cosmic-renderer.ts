@@ -1,4 +1,5 @@
 import { Nebula, ProjectFunction, Star } from "@/interfaces/particles";
+import { THEME_COLOR } from "@/constants/cosmic-explorer";
 
 export const drawBackground = (
   ctx: CanvasRenderingContext2D,
@@ -151,7 +152,7 @@ export const drawUFO = (
   ctx.rotate(bankAngle);
 
   ctx.fillStyle = "rgba(200, 220, 255, 0.9)";
-  ctx.strokeStyle = "#00ff7f";
+  ctx.strokeStyle = THEME_COLOR;
   ctx.lineWidth = 2;
 
   ctx.beginPath();
@@ -180,7 +181,7 @@ export const drawUFO = (
 
   const engineGlow = Math.sin(time * 5) * 0.3 + 0.7;
   ctx.fillStyle = `rgba(0, 255, 127, ${engineGlow})`;
-  ctx.shadowColor = "#00ff7f";
+  ctx.shadowColor = THEME_COLOR;
   ctx.shadowBlur = 20;
   ctx.beginPath();
   ctx.ellipse(

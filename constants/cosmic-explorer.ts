@@ -45,3 +45,5 @@ export const SECRET_PLANET = {
 };
 
 export const FOV = 600;
+
+export const THEME_COLOR = "#00ff7f";
