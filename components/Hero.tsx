@@ -17,12 +17,11 @@ export function Hero() {
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
 
-      // Calculate movement based on mouse position (-1 to 1)
+      // we calculate movement based on mouse position (-1 to 1)
       const xPercent = (clientX / innerWidth - 0.5) * 2;
       const yPercent = (clientY / innerHeight - 0.5) * 2;
 
-      // Apply parallax movement (adjust multiplier for intensity)
-      const moveX = xPercent * 30; // 30px max movement
+      const moveX = xPercent * 30;
       const moveY = yPercent * 30;
 
       gsap.to(bgRef.current, {
