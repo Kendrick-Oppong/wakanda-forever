@@ -39,10 +39,9 @@ export function Loader({ onComplete }: LoaderProps) {
 
   useEffect(() => {
     if (isComplete && loaderRef.current) {
-      // GSAP flip animation - flips from bottom to top
+      // Slide-up curtain animation
       gsap.to(loaderRef.current, {
-        rotationX: -90, // Negative rotation flips upward from bottom
-        transformOrigin: "bottom center",
+        y: "-100%",
         duration: 0.8,
         ease: "power2.inOut",
         onComplete: () => {
@@ -58,13 +57,22 @@ export function Loader({ onComplete }: LoaderProps) {
   return (
     <div
       ref={loaderRef}
-      className="fixed inset-0 z-9999 flex items-center justify-center bg-[#1a1a1a]"
-      style={{
-        perspective: "1000px",
-        transformStyle: "preserve-3d",
-      }}
+      className="fixed inset-0 z-9999 flex items-center justify-center bg-[#0a0a0a]"
     >
-      <div className="absolute inset-0 opacity-30">
+      {/* Base geometric pattern background */}
+      <div className="absolute inset-0 opacity-15">
+        <Image
+          src="/menu-bg.webp"
+          alt="Background texture"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+      <div className="absolute inset-0 bg-white opacity-10" />
+
+      {/* Subtle overlay pattern */}
+      <div className="absolute inset-0">
         <Image
           src="/loader-bg.png"
           alt="Background pattern"
@@ -73,7 +81,6 @@ export function Loader({ onComplete }: LoaderProps) {
           priority
         />
       </div>
-
       <div className="relative z-10 flex flex-col items-center gap-8 px-4">
         <LogoLoaderSection />
 
