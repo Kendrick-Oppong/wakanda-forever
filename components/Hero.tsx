@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { SpriteLogo } from "./common/SpriteLogo";
 import { LogoLoaderSection } from "./loader/logoSection";
 import { Button } from "./common/Button";
-import { useLoaderComplete } from "@/contexts/LoaderContext";
 
 const BEAM_ANGLES = [-45, -30, -15, 0, 15, 30, 45];
 
-export function Hero() {
+interface HeroProps {
+  onEnter?: () => void;
+  startAnimations?: boolean;
+}
+
+export function Hero({ onEnter, startAnimations = true }: HeroProps) {
   const bgRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const taglineRef = useRef<HTMLDivElement>(null);
   const beamRef = useRef<HTMLDivElement>(null);
-  const { loaderComplete } = useLoaderComplete();
 
   // Mouse parallax effect
   useEffect(() => {
@@ -42,7 +45,7 @@ export function Hero() {
 
   // Entrance animations
   useEffect(() => {
-    if (!loaderComplete) return;
+    if (!startAnimations) return;
     const timeline = gsap.timeline({ delay: 0.2 });
 
     if (titleRef.current) {
@@ -61,7 +64,7 @@ export function Hero() {
         "-=0.8"
       );
     }
-  }, [loaderComplete]);
+  }, [startAnimations]);
 
   // Light beam animation
   useEffect(() => {
@@ -80,27 +83,52 @@ export function Hero() {
     );
   }, []);
 
+  // Exit Animation
+  const handleEnterClick = () => {
+    // 1. Fade out UI elements
+    gsap.to(
+      [
+        titleRef.current,
+        taglineRef.current,
+        beamRef.current,
+        ".button-container",
+      ],
+      {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.in",
+        onComplete: () => {
+          if (onEnter) onEnter();
+        },
+      }
+    );
+  };
+
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-black">
-      {/* 1. Background Image */}
-      <div ref={bgRef} className="absolute inset-0">
-        <Image
-          src="/HDRI_Entrance_02_opti.png"
-          alt="Hall entrance"
-          fill
-          className="object-cover object-center scale-[250%]"
-          priority
-        />
+    <div className="relative w-full h-screen overflow-hidden bg-black">
+      {/* 1. Backgrounds Stack */}
+      <div className="absolute inset-0 z-0">
+        {/* Static Base Layer - HDRI */}
+        <div ref={bgRef} className="absolute inset-0 w-full h-full">
+          <Image
+            src="/HDRI_Entrance_02_opti.png"
+            alt="Hall entrance"
+            fill
+            className="object-cover object-center scale-[250%]"
+            priority
+          />
+        </div>
       </div>
 
       {/* 2. Dark Overlay */}
-      <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+      <div className="absolute inset-0 bg-black/60 pointer-events-none z-10" />
 
-      <div className="absolute inset-0 pointer-events-none mix-blend-screen overflow-hidden">
+      {/* 3. Volumetric God Rays */}
+      <div className="absolute inset-0 pointer-events-none mix-blend-screen overflow-hidden z-20">
         <div className="absolute top-[-20%] left-1/2 w-full h-[150vh] -translate-x-1/2 pointer-events-none z-0">
           <div
             ref={beamRef}
-            className="w-full h-full opacity-60 blur-md origin-top"
+            className="w-full h-full opacity-60 blur-md origin-top beam-ray"
           >
             {BEAM_ANGLES.map((angle, i) => (
               <div
@@ -205,28 +233,25 @@ export function Hero() {
           </svg>
         </div>
 
-        {/* Tagline */}
+        {/* Tagline & Actions Combined Below */}
+
+        {/* Actions */}
         <div
           ref={taglineRef}
-          className="relative mb-8 mx-auto w-fit max-w-[90%]"
+          className="button-container flex flex-col items-center gap-6"
           style={{ opacity: 0 }}
         >
-          <div className="absolute inset-0 flex justify-center pointer-events-none select-none">
-            <div className="relative w-[110%] h-full">
-              <div className="absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-green-500/30 to-transparent blur-3xl opacity-70" />
-            </div>
-          </div>
-          <div className="relative z-10 text-center font-mono uppercase">
-            <p className="font-semibold tracking-widest text-white/95 ">
-              EXPLORE NEW PATHS.
-            </p>
-            <p className="font-semibold tracking-widest text-white/95 ">
-              FIND YOUR GIFT.
-            </p>
-          </div>
-        </div>
+          <p className="text-white/80 tracking-[0.2em] text-sm uppercase">
+            Explore new paths. <br /> Find your gift.
+          </p>
 
-        <Button variant="green">Enter</Button>
+          <Button
+            onClick={handleEnterClick}
+            className="px-12 py-6 text-lg tracking-widest uppercase"
+          >
+            Enter
+          </Button>
+        </div>
 
         <div className="absolute top-8 right-8">
           <Button variant="black"> Accessible version</Button>
@@ -238,11 +263,11 @@ export function Hero() {
             <div className="text-[10px] opacity-70">WAKANDA FOREVER</div>
             <div className="text-[8px] opacity-50">ONLY IN THEATERS</div>
           </div>
-          <div className="text-white/50 text-xs">
+          <div className="text-[6px] text-white/40 tracking-wider">
             Sprite Zero Sugar © | Marvel
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

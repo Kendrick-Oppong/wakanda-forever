@@ -1,10 +1,9 @@
-import ClientLayout from "@/components/ClientLayout";
-import { Hero } from "@/components/Hero";
+import { SceneController } from "@/components/SceneController";
 
 export default function Home() {
   return (
-    <ClientLayout>
-      <Hero />
-    </ClientLayout>
+    <main>
+      <SceneController />
+    </main>
   );
 }
