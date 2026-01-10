@@ -1,11 +1,10 @@
 import ClientLayout from "@/components/ClientLayout";
+import { Hero } from "@/components/Hero";
 
 export default function Home() {
   return (
     <ClientLayout>
-      <main className="min-h-screen bg-background text-foreground selection:bg-white selection:text-black">
-        home
-      </main>
+      <Hero />
     </ClientLayout>
   );
 }

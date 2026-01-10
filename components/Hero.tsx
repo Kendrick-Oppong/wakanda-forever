@@ -1,59 +1,33 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { LogoLoaderSection } from "./logoSection";
+import { SpriteLogo } from "./common/SpriteLogo";
+import { LogoLoaderSection } from "./loader/logoSection";
+import { Button } from "./common/Button";
 
-const LOADER_DURATION = 3000;
-const PROGRESS_UPDATE_INTERVAL = 50;
-
-export function Loader() {
-  const [progress, setProgress] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-
-  useEffect(() => {
-    const increment = (PROGRESS_UPDATE_INTERVAL / LOADER_DURATION) * 100;
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        const next = prev + increment;
-
-        if (next >= 100) {
-          setIsComplete(true);
-          return 100;
-        }
-
-        return next;
-      });
-    }, PROGRESS_UPDATE_INTERVAL);
-
-    return () => clearInterval(timer);
-  }, []);
-
+export function Hero() {
   return (
-    <div
-      className={cn(
-        "fixed inset-0 z-9999 flex items-center justify-center bg-[#1a1a1a] transition-opacity duration-500",
-        isComplete && "opacity-0 pointer-events-none"
-      )}
-    >
-      <div className="absolute inset-0 opacity-30">
+    <section className="relative h-screen w-full overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
         <Image
-          src="/loader-bg.png"
-          alt="Background pattern"
+          src="/HDRI_Entrance_02_opti.png"
+          alt="Hall entrance"
           fill
-          className="object-cover"
+          className="object-cover object-center scale-[170%]"
           priority
         />
+        {/* Dark overlay for better text contrast */}
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-8 px-4">
+      {/* Content */}
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
+        {/* Top Logos */}
         <LogoLoaderSection />
 
-        <div className="text-center">
+        {/* Main Title SVG */}
+        <div className="mb-8">
           <svg
-            className="w-44 h-16"
+            className="w-[700px] h-auto"
             enableBackground="new 0 0 268.8 75.4"
             viewBox="0 0 268.8 75.4"
             xmlns="http://www.w3.org/2000/svg"
@@ -133,18 +107,49 @@ export function Loader() {
           </svg>
         </div>
 
-        <div className="w-64 md:w-96 mt-8">
-          <div className="h-[2px] bg-white/20 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-linear-to-r from-emerald-400 to-emerald-500 transition-all duration-100 ease-linear"
-              style={{ width: `${progress}%` }}
-            />
+        {/* Tagline */}
+        <div className="relative mb-8 mx-auto w-fit max-w-[90%]">
+          {/* Big soft vertical green beams */}
+          <div className="absolute inset-0 flex justify-center pointer-events-none select-none">
+            <div className="relative w-[110%] h-full">
+              <div className="absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-green-500/30 to-transparent blur-3xl opacity-70" />
+              <div className="absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-green-400/20 to-transparent blur-2xl opacity-60 animate-pulse-slow" />
+            </div>
           </div>
-          <div className="text-center mt-3 text-sm text-white/60 font-mono">
-            {Math.round(progress)}%
+
+          {/* Text */}
+          <div className="relative z-10 text-center font-mono uppercase">
+            <p className="font-semibold tracking-widest text-white/95 ">
+              EXPLORE NEW PATHS.
+            </p>
+            <p className="font-semibold tracking-widest text-white/95 ">
+              FIND YOUR GIFT.
+            </p>
+          </div>
+        </div>
+
+        {/* Enter Button */}
+        <Button variant="green">Enter</Button>
+
+        {/* Accessible Version Link */}
+        <div className="absolute top-8 right-8">
+          <Button variant="black"> Accessible version</Button>
+        </div>
+
+        {/* Bottom Logos */}
+        <div className="absolute divide-x border bottom-8 right-2 flex items-center gap-4">
+          <SpriteLogo />
+          <div className="text-white text-xs text-center flex flex-col items-start pr-3">
+            <div className="font-bold">MARVEL STUDIOS</div>
+            <div className="text-[10px] opacity-70">WAKANDA FOREVER</div>
+            <div className="text-[8px] opacity-50">ONLY IN THEATERS</div>
+          </div>
+          <div className="text-white/50 text-xs">
+            Sprite: Open Happiness © 2024 All Rights Reserved
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
+
