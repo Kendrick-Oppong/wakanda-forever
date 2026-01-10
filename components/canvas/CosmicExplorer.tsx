@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import gsap from "gsap";
 import { COSMIC_CREW, SECRET_PLANET } from "@/constants/cosmic-explorer";
 import {
@@ -30,15 +30,15 @@ export function CosmicExplorer() {
     null
   );
 
-  // Game state 
+  // Game state
   const [visitedPlanets, setVisitedPlanets] = useState<Set<string>>(new Set());
   const [currentSpeed, setCurrentSpeed] = useState(0);
   const [distanceTraveled, setDistanceTraveled] = useState(0);
   const [missionCompleteDismissed, setMissionCompleteDismissed] =
     useState(false);
-  const [cameraZ, setCameraZ] = useState(0); 
+  const [cameraZ, setCameraZ] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
-  const [secretUnlocked, setSecretUnlocked] = useState(false); 
+  const [secretUnlocked, setSecretUnlocked] = useState(false);
 
   const isMutedRef = useRef(isMuted);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -48,7 +48,7 @@ export function CosmicExplorer() {
   useEffect(() => {
     isMutedRef.current = isMuted;
 
-    //ambient sound toggle 
+    //ambient sound toggle
     if (audioContextRef.current && ambientStartedRef.current) {
       if (isMuted) {
         stopAmbientSound(ambientOscillatorsRef.current);
@@ -59,11 +59,14 @@ export function CosmicExplorer() {
       }
     }
   }, [isMuted]);
+  const onSecretUnlocked = useEffectEvent(() => {
+    setSecretUnlocked(true);
+  });
 
-  // Check for secret unlock
+  // Checking for secret unlock
   useEffect(() => {
     if (visitedPlanets.size === CREW.length && !secretUnlocked) {
-      setSecretUnlocked(true);
+      onSecretUnlocked();
       playUnlockSound(isMuted);
     }
   }, [visitedPlanets, secretUnlocked, isMuted]);
@@ -81,8 +84,14 @@ export function CosmicExplorer() {
     let frameId: number;
 
     if (!audioContextRef.current && typeof window !== "undefined") {
-      audioContextRef.current = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
+      const AudioContextClass =
+        window.AudioContext ||
+        (
+          window as unknown as Window & {
+            webkitAudioContext: typeof AudioContext;
+          }
+        ).webkitAudioContext;
+      audioContextRef.current = new AudioContextClass();
     }
     const audioContext = audioContextRef.current;
 
@@ -118,9 +127,9 @@ export function CosmicExplorer() {
 
     const camera = { x: 0, y: 0, z: 0 };
     let targetZ = 0; // smooth scrolling
-    let isDocked = false; 
+    let isDocked = false;
     let hoverId: string | null = null;
-    let warpSpeed = 0; 
+    let warpSpeed = 0;
     let lastZ = 0; // tracking speed
 
     let isDragging = false;
@@ -132,15 +141,15 @@ export function CosmicExplorer() {
     let targetOffsetY = 0;
 
     const handleWheel = (e: WheelEvent) => {
-      ensureAmbient(); 
-      if (isDocked) return; 
-      targetZ += e.deltaY * 2; 
-     
+      ensureAmbient();
+      if (isDocked) return;
+      targetZ += e.deltaY * 2;
+
       targetZ = Math.max(0, Math.min(targetZ, 8000));
 
       const scrollSpeed = Math.abs(e.deltaY);
       if (scrollSpeed > 50) {
-        playSound(200 + scrollSpeed, 100, 0.05)
+        playSound(200 + scrollSpeed, 100, 0.05);
       }
     };
 
@@ -210,12 +219,12 @@ export function CosmicExplorer() {
     };
 
     const handleClick = () => {
-      ensureAmbient(); 
+      ensureAmbient();
       if (isDocked) {
         isDocked = false;
         setActivePlanet(null);
         warpSpeed = 0;
-        playSound(150, 200, 0.08); 
+        playSound(150, 200, 0.08);
       } else if (hoverId) {
         const planet = CREW.find((p) => p.id === hoverId);
         if (planet) {
@@ -227,10 +236,10 @@ export function CosmicExplorer() {
           playSound(400, 300, 0.1);
           setTimeout(() => playSound(300, 200, 0.08), 150);
 
-          // WARP EFFECT: 
+          // WARP EFFECT:
           warpSpeed = 50;
           gsap.to(camera, {
-            z: planet.z - 350, 
+            z: planet.z - 350,
             duration: 2.0,
             ease: "power2.inOut",
             onUpdate: () => {
@@ -240,7 +249,7 @@ export function CosmicExplorer() {
               warpSpeed = 0;
             },
           });
-          targetZ = planet.z - 350; 
+          targetZ = planet.z - 350;
         }
       }
     };
@@ -281,7 +290,7 @@ export function CosmicExplorer() {
 
       // Physics
       if (!isDocked) {
-        camera.z += (targetZ - camera.z) * 0.05; 
+        camera.z += (targetZ - camera.z) * 0.05;
       }
 
       // Smooth camera pan
@@ -294,9 +303,9 @@ export function CosmicExplorer() {
       if (Math.floor(time * 100) % 10 === 0) {
         setCurrentSpeed(speed);
         setDistanceTraveled((prev) => prev + speed);
-        setCameraZ(camera.z); 
+        setCameraZ(camera.z);
       }
-      lastZ = camera.z; 
+      lastZ = camera.z;
 
       ctx.clearRect(0, 0, width, height);
 
