@@ -6,15 +6,13 @@ import gsap from "gsap";
 import { SpriteLogo } from "./common/SpriteLogo";
 import { LogoLoaderSection } from "./loader/logoSection";
 import { Button } from "./common/Button";
+import { useLoaderComplete } from "@/contexts/LoaderContext";
 
-interface HeroProps {
-  loaderComplete?: boolean;
-}
-
-export function Hero({ loaderComplete = false }: HeroProps) {
+export function Hero() {
   const bgRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const taglineRef = useRef<HTMLDivElement>(null);
+  const { loaderComplete } = useLoaderComplete();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
