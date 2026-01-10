@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import gsap from "gsap";
 import { LogoLoaderSection } from "./logoSection";
 
 const LOADER_DURATION = 3000;
@@ -11,6 +11,8 @@ const PROGRESS_UPDATE_INTERVAL = 50;
 export function Loader() {
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [shouldHide, setShouldHide] = useState(false);
+  const loaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const increment = (PROGRESS_UPDATE_INTERVAL / LOADER_DURATION) * 100;
@@ -31,12 +33,31 @@ export function Loader() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (isComplete && loaderRef.current) {
+      // GSAP flip animation - flips from bottom to top
+      gsap.to(loaderRef.current, {
+        rotationX: -90, // Negative rotation flips upward from bottom
+        transformOrigin: "bottom center",
+        duration: 0.8,
+        ease: "power2.inOut",
+        onComplete: () => {
+          setShouldHide(true);
+        },
+      });
+    }
+  }, [isComplete]);
+
+  if (shouldHide) return null;
+
   return (
     <div
-      className={cn(
-        "fixed inset-0 z-9999 flex items-center justify-center bg-[#1a1a1a] transition-opacity duration-500",
-        isComplete && "opacity-0 pointer-events-none"
-      )}
+      ref={loaderRef}
+      className="fixed inset-0 z-9999 flex items-center justify-center bg-[#1a1a1a]"
+      style={{
+        perspective: "1000px",
+        transformStyle: "preserve-3d",
+      }}
     >
       <div className="absolute inset-0 opacity-30">
         <Image
@@ -134,14 +155,19 @@ export function Loader() {
         </div>
 
         <div className="w-64 md:w-96 mt-8">
-          <div className="h-[2px] bg-white/20 rounded-full overflow-hidden">
+          <div className="relative h-[2px] bg-white/20 rounded-full overflow-hidden">
             <div
               className="h-full bg-linear-to-r from-emerald-400 to-emerald-500 transition-all duration-100 ease-linear"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="text-center mt-3 text-sm text-white/60 font-mono">
-            {Math.round(progress)}%
+          <div className="relative h-8 mt-1">
+            <div
+              className="absolute text-sm text-white/60 font-mono transition-all duration-100 ease-linear -translate-x-1/2"
+              style={{ left: `${progress}%` }}
+            >
+              {Math.round(progress)}%
+            </div>
           </div>
         </div>
       </div>
