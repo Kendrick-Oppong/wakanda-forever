@@ -1,23 +1,55 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import Image from "next/image";
+import gsap from "gsap";
 import { SpriteLogo } from "./common/SpriteLogo";
 import { LogoLoaderSection } from "./loader/logoSection";
 import { Button } from "./common/Button";
 
 export function Hero() {
+  const bgRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!bgRef.current) return;
+
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+
+      // Calculate movement based on mouse position (-1 to 1)
+      const xPercent = (clientX / innerWidth - 0.5) * 2;
+      const yPercent = (clientY / innerHeight - 0.5) * 2;
+
+      // Apply parallax movement (adjust multiplier for intensity)
+      const moveX = xPercent * 30; // 30px max movement
+      const moveY = yPercent * 30;
+
+      gsap.to(bgRef.current, {
+        x: moveX,
+        y: moveY,
+        duration: 0.8,
+        ease: "power2.out",
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
   return (
     <section className="relative h-screen w-full overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0">
+      <div ref={bgRef} className="absolute inset-0">
         <Image
           src="/HDRI_Entrance_02_opti.png"
           alt="Hall entrance"
           fill
           className="object-cover object-center scale-[170%]"
-          priority
         />
-        {/* Dark overlay for better text contrast */}
-        <div className="absolute inset-0 bg-black/50" />
       </div>
+
+      {/* Dark overlay - positioned independently to always cover screen */}
+      <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
@@ -152,4 +184,3 @@ export function Hero() {
     </section>
   );
 }
-
