@@ -8,7 +8,11 @@ import { LogoLoaderSection } from "./logoSection";
 const LOADER_DURATION = 3000;
 const PROGRESS_UPDATE_INTERVAL = 50;
 
-export function Loader() {
+interface LoaderProps {
+  onComplete?: () => void;
+}
+
+export function Loader({ onComplete }: LoaderProps) {
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [shouldHide, setShouldHide] = useState(false);
@@ -43,10 +47,11 @@ export function Loader() {
         ease: "power2.inOut",
         onComplete: () => {
           setShouldHide(true);
+          onComplete?.(); //we notify parent that loader is complete
         },
       });
     }
-  }, [isComplete]);
+  }, [isComplete, onComplete]);
 
   if (shouldHide) return null;
 
