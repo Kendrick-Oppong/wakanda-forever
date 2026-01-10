@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { SpriteLogo } from "./common/SpriteLogo";
@@ -14,7 +14,7 @@ interface HeroProps {
   startAnimations?: boolean;
 }
 
-export function Hero({ onEnter, startAnimations = true }: HeroProps) {
+export function Hero({ onEnter, startAnimations = true }: Readonly<HeroProps>) {
   const bgRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const taglineRef = useRef<HTMLDivElement>(null);
@@ -111,7 +111,7 @@ export function Hero({ onEnter, startAnimations = true }: HeroProps) {
         {/* Static Base Layer - HDRI */}
         <div ref={bgRef} className="absolute inset-0 w-full h-full">
           <Image
-            src="/HDRI_Entrance_02_opti.png"
+            src="/HDRI_Entrance_02_opti.jpg"
             alt="Hall entrance"
             fill
             className="object-cover object-center scale-[250%]"
@@ -132,7 +132,7 @@ export function Hero({ onEnter, startAnimations = true }: HeroProps) {
           >
             {BEAM_ANGLES.map((angle, i) => (
               <div
-                key={i}
+                key={`${angle}-${i}`}
                 className="absolute top-0 left-1/2 w-[6vh] h-full origin-top transform -translate-x-1/2"
                 style={{
                   rotate: `${angle}deg`,
@@ -153,7 +153,7 @@ export function Hero({ onEnter, startAnimations = true }: HeroProps) {
 
         <div ref={titleRef} className="mb-8" style={{ opacity: 0 }}>
           <svg
-            className="w-[700px] h-auto"
+            className="w-175 h-auto"
             enableBackground="new 0 0 268.8 75.4"
             viewBox="0 0 268.8 75.4"
             xmlns="http://www.w3.org/2000/svg"
