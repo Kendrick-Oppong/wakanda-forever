@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Hero } from "@/components/Hero";
-import { CinematicEntrance } from "@/components/CinematicEntrance";
+import { GalaxyEntrance } from "@/components/GalaxyEntrance";
 import { Loader } from "@/components/loader/Loader";
 
 type Scene = "LOADING" | "HERO" | "CINEMATIC_ENTRANCE" | "MAIN_CONTENT";
@@ -27,7 +27,7 @@ export function SceneController() {
         return (
           <>
             <Hero onEnter={() => {}} />
-            <CinematicEntrance />
+            <GalaxyEntrance />
           </>
         );
 

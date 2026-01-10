@@ -51,7 +51,7 @@ export const Button = ({
           {/* GRADIENT OVERLAY - Shimmer effect on hover */}
           <div
             className={cn(
-              "absolute inset-0 bg-gradient-to-r opacity-0 transition-opacity duration-500",
+              "absolute inset-0 bg-linear-to-r opacity-0 transition-opacity duration-500",
               variant === "green" &&
                 "group-hover:opacity-100 from-emerald-500/0 via-emerald-500/10 to-emerald-500/0"
             )}
@@ -149,7 +149,7 @@ export const Button = ({
             {/* ANIMATED SCAN GRADIENT - Moves down on hover */}
             <div
               className={cn(
-                "absolute inset-0 bg-gradient-to-b from-transparent to-transparent h-full animate-scan",
+                "absolute inset-0 bg-linear-to-b from-transparent to-transparent h-full animate-scan",
                 variant === "green" && "via-emerald-500/30"
               )}
             />

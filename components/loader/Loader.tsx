@@ -12,7 +12,7 @@ interface LoaderProps {
   onComplete?: () => void;
 }
 
-export function Loader({ onComplete }: LoaderProps) {
+export function Loader({ onComplete }: Readonly<LoaderProps>) {
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [shouldHide, setShouldHide] = useState(false);
@@ -167,7 +167,7 @@ export function Loader({ onComplete }: LoaderProps) {
         </div>
 
         <div className="w-64 md:w-96 mt-8">
-          <div className="relative h-[2px] bg-white/20 rounded-full overflow-hidden">
+          <div className="relative h-0.5 bg-white/20 rounded-full overflow-hidden">
             <div
               className="h-full bg-linear-to-r from-emerald-400 to-emerald-500 transition-all duration-100 ease-linear"
               style={{ width: `${progress}%` }}
