@@ -8,23 +8,23 @@ import { LogoLoaderSection } from "./loader/logoSection";
 import { Button } from "./common/Button";
 import { useLoaderComplete } from "@/contexts/LoaderContext";
 
+const BEAM_ANGLES = [-45, -30, -15, 0, 15, 30, 45];
+
 export function Hero() {
   const bgRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const taglineRef = useRef<HTMLDivElement>(null);
+  const beamRef = useRef<HTMLDivElement>(null);
   const { loaderComplete } = useLoaderComplete();
 
+  // Mouse parallax effect
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!bgRef.current) return;
-
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
-
-      // here, we calculate movement based on mouse position (-1 to 1)
       const xPercent = (clientX / innerWidth - 0.5) * 2;
       const yPercent = (clientY / innerHeight - 0.5) * 2;
-
       const moveX = xPercent * 30;
       const moveY = yPercent * 30;
 
@@ -40,68 +40,89 @@ export function Hero() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Entrance animations for title and tagline
+  // Entrance animations
   useEffect(() => {
     if (!loaderComplete) return;
-
     const timeline = gsap.timeline({ delay: 0.2 });
 
-    // Animate title SVG
     if (titleRef.current) {
       timeline.fromTo(
         titleRef.current,
-        {
-          opacity: 0,
-          scale: 0.8,
-        },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1.2,
-          ease: "power3.out",
-        }
+        { opacity: 0, scale: 0.8 },
+        { opacity: 1, scale: 1, duration: 1.2, ease: "power3.out" }
       );
     }
 
-    // Animate tagline
     if (taglineRef.current) {
       timeline.fromTo(
         taglineRef.current,
-        {
-          opacity: 0,
-          scale: 0.9,
-        },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1,
-          ease: "power3.out",
-        },
-        "-=0.8" // it should start 0.8s before the previous animation ends
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 1, ease: "power3.out" },
+        "-=0.8"
       );
     }
   }, [loaderComplete]);
 
+  // Light beam animation
+  useEffect(() => {
+    if (!beamRef.current) return;
+
+    gsap.fromTo(
+      beamRef.current,
+      { xPercent: -3 },
+      {
+        xPercent: 3,
+        duration: 6,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+      }
+    );
+  }, []);
+
   return (
-    <section className="relative h-screen w-full overflow-hidden">
+    <section className="relative h-screen w-full overflow-hidden bg-black">
+      {/* 1. Background Image */}
       <div ref={bgRef} className="absolute inset-0">
         <Image
           src="/HDRI_Entrance_02_opti.png"
           alt="Hall entrance"
           fill
-          className="object-cover object-center scale-[170%]"
+          className="object-cover object-center scale-[250%]"
+          priority
         />
       </div>
 
-      {/* Dark overlay - positioned independently to always cover screen */}
-      <div className="absolute inset-0 bg-black/50 pointer-events-none" />
+      {/* 2. Dark Overlay */}
+      <div className="absolute inset-0 bg-black/60 pointer-events-none" />
 
-      {/* Content */}
+      <div className="absolute inset-0 pointer-events-none mix-blend-screen overflow-hidden">
+        <div className="absolute top-[-20%] left-1/2 w-full h-[150vh] -translate-x-1/2 pointer-events-none z-0">
+          <div
+            ref={beamRef}
+            className="w-full h-full opacity-60 blur-md origin-top"
+          >
+            {BEAM_ANGLES.map((angle, i) => (
+              <div
+                key={i}
+                className="absolute top-0 left-1/2 w-[6vh] h-full origin-top transform -translate-x-1/2"
+                style={{
+                  rotate: `${angle}deg`,
+                  background: `linear-gradient(to bottom,
+                  rgba(255, 255, 255, 0) 0%,
+                  rgba(255, 255, 255, ${i % 2 === 0 ? 0.2 : 0.1}) 20%,
+                  rgba(255, 255, 255, 0) 80%
+                )`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
-        {/* Top Logos */}
         <LogoLoaderSection />
 
-        {/* Main Title SVG */}
         <div ref={titleRef} className="mb-8" style={{ opacity: 0 }}>
           <svg
             className="w-[700px] h-auto"
@@ -190,15 +211,11 @@ export function Hero() {
           className="relative mb-8 mx-auto w-fit max-w-[90%]"
           style={{ opacity: 0 }}
         >
-          {/* Big soft vertical green beams */}
           <div className="absolute inset-0 flex justify-center pointer-events-none select-none">
             <div className="relative w-[110%] h-full">
               <div className="absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-green-500/30 to-transparent blur-3xl opacity-70" />
-              <div className="absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-green-400/20 to-transparent blur-2xl opacity-60 animate-pulse-slow" />
             </div>
           </div>
-
-          {/* Text */}
           <div className="relative z-10 text-center font-mono uppercase">
             <p className="font-semibold tracking-widest text-white/95 ">
               EXPLORE NEW PATHS.
@@ -209,24 +226,20 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Enter Button */}
         <Button variant="green">Enter</Button>
 
-        {/* Accessible Version Link */}
         <div className="absolute top-8 right-8">
           <Button variant="black"> Accessible version</Button>
         </div>
 
-        {/* Bottom Logos */}
-        <div className="absolute divide-x border bottom-8 right-2 flex items-center gap-4">
+        <div className="absolute divide-x divide-white/15 border border-white/15 bottom-8 right-2 flex items-center gap-4">
           <SpriteLogo />
           <div className="text-white text-xs text-center flex flex-col items-start pr-3">
-            <div className="font-bold">MARVEL STUDIOS</div>
             <div className="text-[10px] opacity-70">WAKANDA FOREVER</div>
             <div className="text-[8px] opacity-50">ONLY IN THEATERS</div>
           </div>
           <div className="text-white/50 text-xs">
-            Sprite: Open Happiness © 2024 All Rights Reserved
+            Sprite Zero Sugar © | Marvel
           </div>
         </div>
       </div>
