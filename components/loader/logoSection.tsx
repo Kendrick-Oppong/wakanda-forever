@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { SpriteLogo } from "../common/SpriteLogo";
@@ -9,7 +9,7 @@ const LOGO_SLIDE_DISTANCE = 200;
 const LOGO_ANIMATION_DURATION = 0.8;
 const LOGO_ANIMATION_OVERLAP = 0.6;
 
-export function LogoLoaderSection() {
+const LogoLoaderSectionComponent = () => {
   const leftRef = useRef<HTMLDivElement | null>(null);
   const rightRef = useRef<HTMLDivElement | null>(null);
 
@@ -64,4 +64,6 @@ export function LogoLoaderSection() {
       </div>
     </div>
   );
-}
+};
+
+export const LogoLoaderSection = React.memo(LogoLoaderSectionComponent);
