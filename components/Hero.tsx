@@ -7,8 +7,14 @@ import { SpriteLogo } from "./common/SpriteLogo";
 import { LogoLoaderSection } from "./loader/logoSection";
 import { Button } from "./common/Button";
 
-export function Hero() {
+interface HeroProps {
+  loaderComplete?: boolean;
+}
+
+export function Hero({ loaderComplete = false }: HeroProps) {
   const bgRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const taglineRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -17,7 +23,7 @@ export function Hero() {
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
 
-      // we calculate movement based on mouse position (-1 to 1)
+      // here, we calculate movement based on mouse position (-1 to 1)
       const xPercent = (clientX / innerWidth - 0.5) * 2;
       const yPercent = (clientY / innerHeight - 0.5) * 2;
 
@@ -35,6 +41,48 @@ export function Hero() {
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
+  // Entrance animations for title and tagline
+  useEffect(() => {
+    if (!loaderComplete) return;
+
+    const timeline = gsap.timeline({ delay: 0.2 });
+
+    // Animate title SVG
+    if (titleRef.current) {
+      timeline.fromTo(
+        titleRef.current,
+        {
+          opacity: 0,
+          scale: 0.8,
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 1.2,
+          ease: "power3.out",
+        }
+      );
+    }
+
+    // Animate tagline
+    if (taglineRef.current) {
+      timeline.fromTo(
+        taglineRef.current,
+        {
+          opacity: 0,
+          scale: 0.9,
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 1,
+          ease: "power3.out",
+        },
+        "-=0.8" // it should start 0.8s before the previous animation ends
+      );
+    }
+  }, [loaderComplete]);
 
   return (
     <section className="relative h-screen w-full overflow-hidden">
@@ -56,7 +104,7 @@ export function Hero() {
         <LogoLoaderSection />
 
         {/* Main Title SVG */}
-        <div className="mb-8">
+        <div ref={titleRef} className="mb-8" style={{ opacity: 0 }}>
           <svg
             className="w-[700px] h-auto"
             enableBackground="new 0 0 268.8 75.4"
@@ -139,7 +187,11 @@ export function Hero() {
         </div>
 
         {/* Tagline */}
-        <div className="relative mb-8 mx-auto w-fit max-w-[90%]">
+        <div
+          ref={taglineRef}
+          className="relative mb-8 mx-auto w-fit max-w-[90%]"
+          style={{ opacity: 0 }}
+        >
           {/* Big soft vertical green beams */}
           <div className="absolute inset-0 flex justify-center pointer-events-none select-none">
             <div className="relative w-[110%] h-full">
