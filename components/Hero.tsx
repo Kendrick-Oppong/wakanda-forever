@@ -113,7 +113,7 @@ export function Hero({ onEnter, startAnimations = true }: Readonly<HeroProps>) {
             src="/HDRI_Entrance_02_opti.jpg"
             alt="Hall entrance"
             fill
-            className="object-cover object-center scale-[180%] sm:scale-[250%]"
+            className="object-cover object-center scale-[140%] sm:scale-[250%]"
             priority
           />
         </div>
