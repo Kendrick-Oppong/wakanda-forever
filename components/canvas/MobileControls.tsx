@@ -11,8 +11,6 @@ export function MobileControls({
   const [activePan, setActivePan] = useState<{ x: number; y: number } | null>(
     null
   );
-  const [activeWarp, setActiveWarp] = useState<number | null>(null);
-
   // References for loops
   const panRef = useRef<{ x: number; y: number } | null>(null);
   const warpRef = useRef<number | null>(null);
@@ -72,7 +70,7 @@ export function MobileControls({
             panRef.current = null;
             setActivePan(null);
           }}
-          onPointerLeave={(e) => {
+          onPointerLeave={() => {
             if (panRef.current) {
               panRef.current = null;
               setActivePan(null);
@@ -105,53 +103,6 @@ export function MobileControls({
         <div className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 text-[10px] pointer-events-none">
           ▶
         </div>
-      </div>
-
-      {/* RIGHT: THROTTLE (WARPING) */}
-      <div className="absolute bottom-8 right-8 w-12 h-48 pointer-events-auto">
-        <div className="absolute inset-0 rounded-full border border-white/20 bg-black/40 backdrop-blur-md overflow-hidden">
-          {/* Fill Level */}
-          <div
-            className="absolute bottom-0 left-0 right-0 bg-cosmic-green/30 transition-all duration-75 ease-linear"
-            style={{ height: `${activeWarp ? Math.min(activeWarp, 100) : 0}%` }}
-          />
-        </div>
-
-        <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-white/40 tracking-widest whitespace-nowrap pointer-events-none">
-          WARP DRIVE
-        </div>
-
-        {/* Interaction Zone */}
-        <div
-          className="absolute inset-0 rounded-full cursor-pointer touch-none mobile-control"
-          onPointerDown={(e) => {
-            e.currentTarget.setPointerCapture(e.pointerId);
-            const rect = e.currentTarget.getBoundingClientRect();
-            const rawVal = 1 - (e.clientY - rect.top) / rect.height;
-            const val = Math.max(0, Math.min(rawVal, 1)) * 100;
-            warpRef.current = val;
-            setActiveWarp(val);
-          }}
-          onPointerMove={(e) => {
-            if (warpRef.current === null) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const rawVal = 1 - (e.clientY - rect.top) / rect.height;
-            const val = Math.max(0, Math.min(rawVal, 1)) * 100;
-            warpRef.current = val;
-            setActiveWarp(val);
-          }}
-          onPointerUp={(e) => {
-            e.currentTarget.releasePointerCapture(e.pointerId);
-            warpRef.current = null;
-            setActiveWarp(null);
-          }}
-          onPointerLeave={(e) => {
-            if (warpRef.current !== null) {
-              warpRef.current = null;
-              setActiveWarp(null);
-            }
-          }}
-        />
       </div>
     </div>
   );

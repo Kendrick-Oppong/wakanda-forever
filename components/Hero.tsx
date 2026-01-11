@@ -119,10 +119,10 @@ export function Hero({ onEnter, startAnimations = true }: Readonly<HeroProps>) {
         </div>
       </div>
 
-      {/* 2. Dark Overlay */}
+      {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/60 pointer-events-none z-10" />
 
-      {/* 3. Volumetric God Rays */}
+      {/* Volumetric God Rays */}
       <div className="absolute inset-0 pointer-events-none mix-blend-screen overflow-hidden z-20">
         <div className="absolute top-[-20%] left-1/2 w-full h-[150vh] -translate-x-1/2 pointer-events-none z-0">
           <div

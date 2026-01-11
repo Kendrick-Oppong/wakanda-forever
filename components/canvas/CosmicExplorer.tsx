@@ -140,7 +140,6 @@ export function CosmicExplorer() {
     let dragStartX = 0;
     let dragStartY = 0;
 
-    // We'll use these local "current" values for interpolation logic
     let currentOffsetX = 0;
     let currentOffsetY = 0;
 
@@ -188,14 +187,13 @@ export function CosmicExplorer() {
 
     let touchStartX = 0;
     let touchStartY = 0;
-    // We also need to track the initial offsets when touch starts
     let touchStartOffsetX = 0;
     let touchStartOffsetY = 0;
 
     let touchStartTime = 0;
 
     const handleTouchStart = (e: TouchEvent) => {
-      // If touching control UI, don't drag scene
+      // If touching control UI,we should not drag scene
       if ((e.target as HTMLElement).closest(".mobile-control")) return;
 
       ensureAmbient();
@@ -215,13 +213,10 @@ export function CosmicExplorer() {
 
       const touch = e.touches[0];
 
-      // Calculate delta from start
+      //  delta from start
       const deltaX = touch.clientX - touchStartX;
       const deltaY = touch.clientY - touchStartY;
 
-      // Apply to offsets (reversed logic: dragging left moves camera right?
-      // Actually standard drag: drag mouse left -> currentOffset - delta.
-      // Let's match mouse logic: target = current - delta)
       targetOffsetXRef.current = touchStartOffsetX - deltaX;
       targetOffsetYRef.current = touchStartOffsetY - deltaY;
 
@@ -646,7 +641,7 @@ export function CosmicExplorer() {
                 {/* Planets */}
                 {[...CREW, ...(secretUnlocked ? [SECRET_PLANET] : [])].map(
                   (planet) => {
-                    const progress = cameraZ / 8500; // Normalize camera position
+                    const progress = cameraZ / 8500; 
                     const planetProgress = planet.z / 8500;
                     const angle =
                       CREW.findIndex((c) => c.id === planet.id) *
@@ -688,7 +683,7 @@ export function CosmicExplorer() {
           </div>
 
           {/* Sound Toggle (Bottom Right of Radar) */}
-          <div className="absolute bottom-6 left-48 pointer-events-auto hidden md:block">
+          <div className="absolute bottom-6 left-48 pointer-events-auto ">
             <button
               onClick={() => setIsMuted(!isMuted)}
               className="bg-black/70 backdrop-blur-sm border border-cosmic-green/30 p-2 rounded-lg hover:bg-cosmic-green/10 transition-colors"
