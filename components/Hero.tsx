@@ -256,7 +256,7 @@ export function Hero({ onEnter, startAnimations = true }: Readonly<HeroProps>) {
           <Button variant="black"> Accessible version</Button>
         </div>
 
-        <div className="absolute divide-x divide-white/15 border border-white/15 bottom-12 sm:bottom-8 right-2 flex items-center gap-4">
+        <div className="absolute divide-x divide-white/15 border border-white/15 bottom-18 sm:bottom-8 right-2 flex items-center gap-4">
           <SpriteLogo />
           <div className="text-white text-xs text-center flex flex-col items-start pr-3">
             <div className="text-[10px] opacity-70">WAKANDA FOREVER</div>
