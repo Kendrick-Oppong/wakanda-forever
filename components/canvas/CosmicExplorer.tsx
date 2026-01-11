@@ -189,48 +189,78 @@ export function CosmicExplorer() {
     let touchStartY = 0;
     let touchStartOffsetX = 0;
     let touchStartOffsetY = 0;
-
     let touchStartTime = 0;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      // If touching control UI,we should not drag scene
-      if ((e.target as HTMLElement).closest(".mobile-control")) return;
+    // Pinch Zoom Variables
+    let initialPinchDistance = 0;
+    let startPinchZ = 0;
+    let isPinching = false;
 
+    const getTouchDistance = (
+      touch1: React.Touch | Touch,
+      touch2: React.Touch | Touch
+    ) => {
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if ((e.target as HTMLElement).closest(".mobile-control")) return;
       ensureAmbient();
-      const touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-      touchStartOffsetX = targetOffsetXRef.current;
-      touchStartOffsetY = targetOffsetYRef.current;
 
       touchStartTime = Date.now();
-      mouse.x = touch.clientX;
-      mouse.y = touch.clientY;
+
+      if (e.touches.length === 2) {
+        isPinching = true;
+        initialPinchDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        startPinchZ = targetZRef.current;
+      } else if (e.touches.length === 1) {
+        isPinching = false;
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchStartOffsetX = targetOffsetXRef.current;
+        touchStartOffsetY = targetOffsetYRef.current;
+        mouse.x = touch.clientX;
+        mouse.y = touch.clientY;
+      }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (isDocked) return;
 
-      const touch = e.touches[0];
+      if (e.touches.length === 2 && isPinching) {
+        const dist = getTouchDistance(e.touches[0], e.touches[1]);
+        const delta = dist - initialPinchDistance;
 
-      //  delta from start
-      const deltaX = touch.clientX - touchStartX;
-      const deltaY = touch.clientY - touchStartY;
+        targetZRef.current = startPinchZ + delta * 5;
+        targetZRef.current = Math.max(0, Math.min(targetZRef.current, 8000));
 
-      targetOffsetXRef.current = touchStartOffsetX - deltaX;
-      targetOffsetYRef.current = touchStartOffsetY - deltaY;
+        e.preventDefault();
+      } else if (e.touches.length === 1 && !isPinching) {
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - touchStartX;
+        const deltaY = touch.clientY - touchStartY;
 
-      mouse.x = touch.clientX;
-      mouse.y = touch.clientY;
+        targetOffsetXRef.current = touchStartOffsetX - deltaX;
+        targetOffsetYRef.current = touchStartOffsetY - deltaY;
 
-      e.preventDefault();
+        mouse.x = touch.clientX;
+        mouse.y = touch.clientY;
+
+        e.preventDefault();
+      }
     };
 
-    const handleTouchEnd = () => {
-      const touchDuration = Date.now() - touchStartTime;
-
-      if (touchDuration < 200) {
-        handleClick();
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) {
+        const touchDuration = Date.now() - touchStartTime;
+      
+        if (touchDuration < 200 && !isPinching) {
+          handleClick();
+        }
+        isPinching = false;
       }
     };
 
@@ -641,7 +671,7 @@ export function CosmicExplorer() {
                 {/* Planets */}
                 {[...CREW, ...(secretUnlocked ? [SECRET_PLANET] : [])].map(
                   (planet) => {
-                    const progress = cameraZ / 8500; 
+                    const progress = cameraZ / 8500;
                     const planetProgress = planet.z / 8500;
                     const angle =
                       CREW.findIndex((c) => c.id === planet.id) *
