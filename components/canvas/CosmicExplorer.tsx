@@ -11,6 +11,7 @@ import {
 } from "@/lib/audio";
 import { createStar, createNebula, project as projectUtil } from "@/lib/canvas";
 import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
+import { MobileControls } from "./MobileControls";
 import {
   drawBackground,
   drawNebulas,
@@ -44,6 +45,10 @@ export function CosmicExplorer() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const ambientOscillatorsRef = useRef<OscillatorNode[]>([]);
   const ambientStartedRef = useRef(false);
+
+  const targetZRef = useRef(0);
+  const targetOffsetXRef = useRef(0);
+  const targetOffsetYRef = useRef(0);
 
   useEffect(() => {
     isMutedRef.current = isMuted;
@@ -126,26 +131,24 @@ export function CosmicExplorer() {
     };
 
     const camera = { x: 0, y: 0, z: 0 };
-    let targetZ = 0; // smooth scrolling
     let isDocked = false;
     let hoverId: string | null = null;
     let warpSpeed = 0;
-    let lastZ = 0; // tracking speed
+    let lastZ = 0;
 
     let isDragging = false;
     let dragStartX = 0;
     let dragStartY = 0;
-    let cameraOffsetX = 0;
-    let cameraOffsetY = 0;
-    let targetOffsetX = 0;
-    let targetOffsetY = 0;
+
+    // We'll use these local "current" values for interpolation logic
+    let currentOffsetX = 0;
+    let currentOffsetY = 0;
 
     const handleWheel = (e: WheelEvent) => {
       ensureAmbient();
       if (isDocked) return;
-      targetZ += e.deltaY * 2;
-
-      targetZ = Math.max(0, Math.min(targetZ, 8000));
+      targetZRef.current += e.deltaY * 2;
+      targetZRef.current = Math.max(0, Math.min(targetZRef.current, 8000));
 
       const scrollSpeed = Math.abs(e.deltaY);
       if (scrollSpeed > 50) {
@@ -163,17 +166,18 @@ export function CosmicExplorer() {
         const deltaX = e.clientX - dragStartX;
         const deltaY = e.clientY - dragStartY;
 
-        targetOffsetX = cameraOffsetX - deltaX;
-        targetOffsetY = cameraOffsetY - deltaY;
+        targetOffsetXRef.current = currentOffsetX - deltaX;
+        targetOffsetYRef.current = currentOffsetY - deltaY;
       }
     };
 
     const handleMouseDown = (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest(".mobile-control")) return;
       isDragging = true;
       dragStartX = e.clientX;
       dragStartY = e.clientY;
-      cameraOffsetX = targetOffsetX;
-      cameraOffsetY = targetOffsetY;
+      currentOffsetX = targetOffsetXRef.current;
+      currentOffsetY = targetOffsetYRef.current;
       document.body.style.cursor = "grabbing";
     };
 
@@ -182,27 +186,44 @@ export function CosmicExplorer() {
       document.body.style.cursor = "default";
     };
 
+    let touchStartX = 0;
     let touchStartY = 0;
+    // We also need to track the initial offsets when touch starts
+    let touchStartOffsetX = 0;
+    let touchStartOffsetY = 0;
+
     let touchStartTime = 0;
 
     const handleTouchStart = (e: TouchEvent) => {
+      // If touching control UI, don't drag scene
+      if ((e.target as HTMLElement).closest(".mobile-control")) return;
+
       ensureAmbient();
-      touchStartY = e.touches[0].clientY;
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartOffsetX = targetOffsetXRef.current;
+      touchStartOffsetY = targetOffsetYRef.current;
+
       touchStartTime = Date.now();
-      mouse.x = e.touches[0].clientX;
-      mouse.y = e.touches[0].clientY;
+      mouse.x = touch.clientX;
+      mouse.y = touch.clientY;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (isDocked) return;
 
       const touch = e.touches[0];
-      const deltaY = touchStartY - touch.clientY;
 
-      targetZ += deltaY * 3;
-      targetZ = Math.max(0, Math.min(targetZ, 8000));
+      // Calculate delta from start
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
 
-      touchStartY = touch.clientY;
+      // Apply to offsets (reversed logic: dragging left moves camera right?
+      // Actually standard drag: drag mouse left -> currentOffset - delta.
+      // Let's match mouse logic: target = current - delta)
+      targetOffsetXRef.current = touchStartOffsetX - deltaX;
+      targetOffsetYRef.current = touchStartOffsetY - deltaY;
 
       mouse.x = touch.clientX;
       mouse.y = touch.clientY;
@@ -249,7 +270,7 @@ export function CosmicExplorer() {
               warpSpeed = 0;
             },
           });
-          targetZ = planet.z - 350;
+          targetZRef.current = planet.z - 350;
         }
       }
     };
@@ -290,12 +311,12 @@ export function CosmicExplorer() {
 
       // Physics
       if (!isDocked) {
-        camera.z += (targetZ - camera.z) * 0.05;
+        camera.z += (targetZRef.current - camera.z) * 0.05;
       }
 
       // Smooth camera pan
-      camera.x += (targetOffsetX - camera.x) * 0.1;
-      camera.y += (targetOffsetY - camera.y) * 0.1;
+      camera.x += (targetOffsetXRef.current - camera.x) * 0.1;
+      camera.y += (targetOffsetYRef.current - camera.y) * 0.1;
 
       // Game Metrics
       const speed = Math.abs(camera.z - lastZ);
@@ -315,7 +336,7 @@ export function CosmicExplorer() {
       drawConstellationLines(ctx, CREW, camera.z, project);
 
       if (!isDocked) {
-        drawUFO(ctx, CREW, camera.z, targetZ, time, project);
+        drawUFO(ctx, CREW, camera.z, targetZRef.current, time, project);
       }
 
       const hitTest = getVisiblePlanetsWithHitTest(
@@ -602,7 +623,7 @@ export function CosmicExplorer() {
           )}
 
           {/* MINI-MAP / RADAR (Bottom Left) */}
-          <div className="absolute bottom-6 left-6 pointer-events-none">
+          <div className="absolute bottom-6 left-6 pointer-events-none hidden md:block">
             <div className="bg-black/70 backdrop-blur-sm border border-cosmic-green/30 p-3 rounded-lg">
               <div className="text-cosmic-green/70 text-[9px] tracking-widest mb-2 text-center">
                 RADAR
@@ -667,7 +688,7 @@ export function CosmicExplorer() {
           </div>
 
           {/* Sound Toggle (Bottom Right of Radar) */}
-          <div className="absolute bottom-6 left-48 pointer-events-auto">
+          <div className="absolute bottom-6 left-48 pointer-events-auto hidden md:block">
             <button
               onClick={() => setIsMuted(!isMuted)}
               className="bg-black/70 backdrop-blur-sm border border-cosmic-green/30 p-2 rounded-lg hover:bg-cosmic-green/10 transition-colors"
@@ -678,6 +699,23 @@ export function CosmicExplorer() {
             </button>
           </div>
         </>
+      )}
+      {/* Mobile Controls Layer */}
+      {!activePlanet && (
+        <MobileControls
+          isDocked={!!activePlanet}
+          onPan={(x, y) => {
+            targetOffsetXRef.current += x;
+            targetOffsetYRef.current += y;
+          }}
+          onWarp={(speed) => {
+            targetZRef.current += speed * 2; // Warp multiplier
+            targetZRef.current = Math.max(
+              0,
+              Math.min(targetZRef.current, 8000)
+            );
+          }}
+        />
       )}
     </>
   );

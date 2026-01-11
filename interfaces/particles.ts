@@ -32,3 +32,11 @@ export interface Nebula {
   color: string;
   size: number;
 }
+
+
+
+export interface MobileControlsProps {
+  onPan: (x: number, y: number) => void;
+  onWarp: (speed: number) => void;
+  isDocked: boolean;
+}
