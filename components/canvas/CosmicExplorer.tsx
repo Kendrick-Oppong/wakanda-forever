@@ -256,8 +256,9 @@ export function CosmicExplorer() {
     const handleTouchEnd = (e: TouchEvent) => {
       if (e.touches.length === 0) {
         const touchDuration = Date.now() - touchStartTime;
-      
+
         if (touchDuration < 200 && !isPinching) {
+          e.preventDefault();
           handleClick();
         }
         isPinching = false;
@@ -411,20 +412,19 @@ export function CosmicExplorer() {
 
       {/* HOLOGRAPHIC CARD OVERLAY (When Docked) */}
       {activePlanet && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none perspective-1000">
+        <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none perspective-1000">
           <div
             className="
                         relative 
-                        bg-[rgba(10,20,15,0.7)] backdrop-blur-md 
+                        bg-[rgba(10,20,15,0.85)] backdrop-blur-xl
                         border-2 border-[rgba(0,255,127,0.3)] 
-                        p-12 rounded-2xl max-w-xl w-full
+                        p-6 md:p-12 rounded-2xl max-w-xl w-[90%] md:w-full
                         pointer-events-auto 
                         animate-in fade-in zoom-in duration-700
                         shadow-[0_0_100px_rgba(0,255,127,0.15)]
                         group
                     "
             style={{
-              transform: "rotateY(-10deg) rotateX(5deg)", // 3D Tilt
               clipPath:
                 "polygon(5% 0, 100% 0, 100% 90%, 95% 100%, 0 100%, 0 10%)",
             }}
@@ -560,19 +560,18 @@ export function CosmicExplorer() {
 
           {/* Completion Message */}
           {visitedPlanets.size === CREW.length && !missionCompleteDismissed && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none perspective-1000">
+            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
               <div
                 className="
                   relative 
                   bg-[rgba(10,20,15,0.85)] backdrop-blur-md 
                   border-2 border-cosmic-green 
-                  p-12 rounded-2xl max-w-xl w-full
+                  p-6 md:p-12 rounded-2xl max-w-xl w-[90%] md:w-full
                   pointer-events-auto 
                   animate-in fade-in zoom-in duration-700
                   shadow-[0_0_100px_rgba(0,255,127,0.3)]
                 "
                 style={{
-                  transform: "rotateY(-5deg) rotateX(3deg)",
                   clipPath:
                     "polygon(5% 0, 100% 0, 100% 90%, 95% 100%, 0 100%, 0 10%)",
                 }}
@@ -602,12 +601,12 @@ export function CosmicExplorer() {
                   <div className="flex items-center justify-center gap-2 mb-4">
                     <div className="w-3 h-3 bg-cosmic-green rounded-full animate-ping" />
                     <span className="text-cosmic-green text-xs tracking-[0.3em] font-mono">
-                      TRANSMISSION COMPLETE
+                      COMPLETED
                     </span>
                   </div>
 
                   {/* Main Message */}
-                  <div className="text-cosmic-green text-5xl font-bold animate-pulse drop-shadow-[0_0_20px_rgba(0,255,127,0.5)]">
+                  <div className="text-cosmic-green text-4xl sm:text-5xl font-bold animate-pulse drop-shadow-[0_0_20px_rgba(0,255,127,0.5)]">
                     MISSION COMPLETE
                   </div>
 
