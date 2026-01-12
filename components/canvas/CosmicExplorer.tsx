@@ -575,6 +575,9 @@ export function CosmicExplorer() {
                   clipPath:
                     "polygon(5% 0, 100% 0, 100% 90%, 95% 100%, 0 100%, 0 10%)",
                 }}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
               >
                 {/* Holographic Scanlines */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,127,0.05)_1px,transparent_1px)] bg-[size:100%_4px] opacity-50 pointer-events-none rounded-2xl" />
