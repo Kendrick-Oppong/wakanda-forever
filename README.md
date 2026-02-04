@@ -215,13 +215,3 @@ export const COSMIC_CREW = [
 ## 📜 License
 
 This project is for educational and demonstration purposes.
-
----
-
-<div align="center">
-
-**Wakanda Forever** 🖤💚
-
-_Built with ❤️ and a passion for cinematic web experiences_
-
-</div>
