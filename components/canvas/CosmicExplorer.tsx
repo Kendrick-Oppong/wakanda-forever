@@ -37,6 +37,7 @@ export function CosmicExplorer() {
   const [distanceTraveled, setDistanceTraveled] = useState(0);
   const [missionCompleteDismissed, setMissionCompleteDismissed] =
     useState(false);
+  
   const [cameraZ, setCameraZ] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [secretUnlocked, setSecretUnlocked] = useState(false);
